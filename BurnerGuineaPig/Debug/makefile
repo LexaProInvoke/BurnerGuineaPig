@@ -60,8 +60,8 @@ all: main-build
 main-build: BurnerGuineaPig.elf secondary-outputs
 
 # Tool invocations
-BurnerGuineaPig.elf BurnerGuineaPig.map: $(OBJS) $(USER_OBJS) C:\Users\Asuka\STM32CubeIDE\workspace_1.7.0\BurnerGuineaPig\STM32F401VCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "BurnerGuineaPig.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Asuka\STM32CubeIDE\workspace_1.7.0\BurnerGuineaPig\STM32F401VCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="BurnerGuineaPig.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+BurnerGuineaPig.elf BurnerGuineaPig.map: $(OBJS) $(USER_OBJS) C:\Users\Asuka\Documents\GitHub\BurnerGuineaPig\BurnerGuineaPig\STM32F401VCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "BurnerGuineaPig.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Asuka\Documents\GitHub\BurnerGuineaPig\BurnerGuineaPig\STM32F401VCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="BurnerGuineaPig.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
