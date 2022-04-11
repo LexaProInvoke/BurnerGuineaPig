@@ -62,7 +62,30 @@ static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
+void configUART2()
+{
+	RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+	//PA2 TX
+	GPIOA->MODER &= ~(0b11<<4);//reset mode reister
+	GPIOA->MODER |= (0b10<<4);//alternate mode
+	GPIOA->OTYPER |= (0b1<<2);//open drain
+	GPIOA->AFR[0] |= (0b0111<<8);//установка альтернативной функции USART2_TX(F7) для пина PA2
 
+
+	//PA3 RX
+	GPIOA->MODER &= ~(0b11<<6);//install input mode
+	GPIOA->OTYPER &= ~(0b11<<6);//clear
+	GPIOA->OTYPER |= (0b01<<6);//install pull up
+	GPIOA->BSRR |= (0b1<<19);//install reset value/?????????????
+
+	USART2->CR1 = USART_CR2_UE;
+	USART2->BRR = 8750;//????????????????????????
+	USART2->CR1 |= USART_CR1_TE | USART_CR1_RE ; // разрешаем приемник и передатчик
+	USART2->CR2 = 0;
+	USART2->CR3 = 0;
+
+}
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void configGPIO()
