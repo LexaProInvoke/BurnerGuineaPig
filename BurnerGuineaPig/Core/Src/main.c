@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "st7735.h"
+#include "stdio.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
   uint8_t str[8];
@@ -62,28 +63,42 @@ static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
-void configUART2()
-{
-	RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
-	//PA2 TX
-	GPIOA->MODER &= ~(0b11<<4);//reset mode reister
-	GPIOA->MODER |= (0b10<<4);//alternate mode
-	GPIOA->OTYPER |= (0b1<<2);//open drain
-	GPIOA->AFR[0] |= (0b0111<<8);//установка альтернативной функции USART2_TX(F7) для пина PA2
+void USARTADD()
+{//Включаем тактирование UART1. Он подключен к шине APB1
+	RCC->APB1ENR |= 0b1<<17; // включаем тактирование UART1
+	//UART1 использует выводы: PA2 (для сигнала TX) и PA3 (сигнал RX). Надо задать конфигурацию для них.
+	RCC->AHB1ENR |= 0b1;// разрешаем тактирование порта GPIOA
 
+	GPIOA->MODER &=	~(0b11110000);
 
-	//PA3 RX
-	GPIOA->MODER &= ~(0b11<<6);//install input mode
-	GPIOA->OTYPER &= ~(0b11<<6);//clear
-	GPIOA->OTYPER |= (0b01<<6);//install pull up
-	GPIOA->BSRR |= (0b1<<19);//install reset value/?????????????
+	GPIOA->MODER |= 0b100000;//PA2
+	GPIOA->OTYPER &= ~(0b100);
+	//GPIOA->OTYPER |= 0b100;
+	//GPIOA->OTYPER |= 0b100;
+	GPIOA->PUPDR &= ~(0b110000);
+	GPIOA->PUPDR |= 0b010000;
+	GPIOA->AFR[0] &= ~(0b111100000000);
+	GPIOA->AFR[0] |= 0b011100000000;
+	GPIOA->OSPEEDR |= 0b110000;
 
-	USART2->CR1 = USART_CR2_UE;
-	USART2->BRR = 8750;//????????????????????????
-	USART2->CR1 |= USART_CR1_TE | USART_CR1_RE ; // разрешаем приемник и передатчик
+	GPIOA->MODER |= 0b10000000;//PA3
+	GPIOA->OTYPER &= ~(0b1000);
+	GPIOA->PUPDR &= ~(0b11000000);
+	GPIOA->PUPDR |= 0b01000000;//PU//  mb PD?
+	GPIOA->AFR[0] &= ~(0b1111000000000000);
+	GPIOA->AFR[0] |= 0b0111000000000000;
+	GPIOA->OSPEEDR |= 0b11000000;
+	//GPIOA->BSRR |= 0b1 << 19;
+	//GPIOA->ODR//proverit bez
+
+	//sam usart
+	USART2->CR1 = USART_CR1_UE;
+	USART2->CR1 |= 0b1000;
+	USART2->CR1 |= 0b100;
+	//USART2->BRR = 8750;//9600 bod
 	USART2->CR2 = 0;
 	USART2->CR3 = 0;
+	//USART2->
 
 }
 /* Private user code ---------------------------------------------------------*/
@@ -171,6 +186,22 @@ void TimerSetting()
 	TIM2->DIER |= TIM_DIER_UIE;				//Разрешаем прерыванияв регистре разрешения таймера
 	NVIC_EnableIRQ (TIM2_IRQn);			//Разрешаем прерыванияв регистре контроллера прерываний
 }
+
+char hello[]= {'P','a','r','a','m',' ','t','='};
+char buffTemp[] = {'0','0','0','(','`','C',')'};
+uint16_t ExperimentTime = 12345;//время эксперимента в секундах
+uint16_t timerValue=0;
+
+
+void ViewParam(uint16_t experimentTime)
+{
+	char mau[10];
+	 sprintf(mau, "%d",ExperimentTime);
+	 ST7735_DrawString(10,10,hello,sizeof hello,Font_11x18,ST7735_BLACK,ST7735_BLUE);
+	 ST7735_DrawString(10,30,buffTemp,sizeof buffTemp,Font_11x18,ST7735_BLACK,ST7735_BLUE);
+	 ST7735_DrawString(10,50,mau,sizeof mau,Font_11x18,ST7735_BLACK,ST7735_BLUE);
+}
+
 void SendImpuls()
 {
 
@@ -186,33 +217,44 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM2_Init();
   MX_SPI1_Init();
+ // MX_USART2_UART_Init();
+ // TimerSetting();
+
+//  ST7735_Init();
+////  GPIOA->LCKR&=		  ~(0b1100);
+// // GPIOA->MODER &=	  ~(0b11110000);
+// // 	GPIOA->PUPDR &=	  ~(0b11110000);
+// // 	GPIOA->OTYPER &=  ~(0b1100);
+// // 	GPIOA->OSPEEDR &= ~(0b11110000);
   //MX_USART2_UART_Init();
-  TimerSetting();
 
-  ST7735_Init();
-//  GPIOA->LCKR&=		  ~(0b1100);
-//  GPIOA->MODER &=	  ~(0b11110000);
-//  	GPIOA->PUPDR &=	  ~(0b11110000);
-//  	GPIOA->OTYPER &=  ~(0b1100);
-//  	GPIOA->OSPEEDR &= ~(0b11110000);
-  MX_USART2_UART_Init();
-  /* USER CODE BEGIN 2 */
-  ST7735_FillScreen(ST7735_BLUE);
+//  ST7735_FillScreen(ST7735_BLUE);
 
-  /* USER CODE END 2 */
+  //configGPIO();
 
-//char displey[10];
 
-  HAL_UART_Receive_IT (&huart2, str, 1);
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-
+uint8_t mau;
+MX_USART2_UART_Init();
+  USARTADD();
+  uint8_t d;
   while (1)
   {
 
-	  ST7735_DrawString(10,10,str,Font_16x26,ST7735_BLACK,ST7735_BLUE);
+	  while ((USART2->SR & USART_SR_RXNE) == 0)
+	  {
+		  mau = 1;
+	  }
+	       d = USART2->DR;
 
-	  HAL_Delay(100);
+	  // отослать данное назад
+	  while ((USART2->SR & USART_SR_TXE) == 0) {
+		  mau = 2;
+	  }
+	  USART2->DR = d;
+//	  ViewParam(ExperimentTime);
+	 // HAL_UART_Receive_IT (&huart2, str, 1);
+	 // ST7735_DrawString(10,10,str,Font_16x26,ST7735_BLACK,ST7735_BLUE);
+	  //HAL_Delay(100);
 	  //sprintf(displey,"%u",counter);
 	 // ST7735_DrawString(10,10,displey,Font_16x26,ST7735_BLACK,ST7735_BLUE);
 

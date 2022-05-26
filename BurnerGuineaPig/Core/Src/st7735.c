@@ -5,11 +5,7 @@
 #include "main.h"
 
 
-//#include "image2ChargeIsOver.h"
-//#include "image3ConnectorRemoved.h"
-//#include "image4PlagIn.h"
-//#include "image5WaitForTheStart.h"
-//#include "image6ChargeStart.h"
+
 
 
 #define TFT_CS_H()	HAL_GPIO_WritePin(ST7735_CS_GPIO_Port, ST7735_CS_Pin, GPIO_PIN_SET)
@@ -223,7 +219,7 @@ static void ST7735_WriteChar(uint16_t x, uint16_t y, char ch, FontDef font, uint
 
     for(i = 0; i < font.height; i++)
     {
-        b = font.data[(ch-33) * font.height + i];
+        b = font.data[(ch-32) * font.height + i];
 
         for(j = 0; j < font.width; j++)
         {
@@ -267,13 +263,13 @@ void ST7735_DrawPixel(uint16_t x, uint16_t y, uint16_t color)
 }
 
 
-void ST7735_DrawString(uint16_t x, uint16_t y, const char* str, FontDef font, uint16_t color, uint16_t bgcolor)
+void ST7735_DrawString(uint16_t x, uint16_t y,const char *str,uint16_t lengthString, FontDef font, uint16_t color, uint16_t bgcolor)
 {
 
 	TFT_CS_L();
 
-    while(*str)
-    {
+    while(*str&&(lengthString>0))
+    { lengthString--;
         if(x + font.width >= _width)
         {
             x = 0;
@@ -300,6 +296,7 @@ void ST7735_DrawString(uint16_t x, uint16_t y, const char* str, FontDef font, ui
         ST7735_WriteChar(x, y, *str, font, color, bgcolor);
         x += font.width;
         str++;
+
     }
     TFT_CS_H();
 }
