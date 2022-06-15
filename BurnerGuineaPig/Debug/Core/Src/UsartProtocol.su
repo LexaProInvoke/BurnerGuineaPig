@@ -1,0 +1,9 @@
+../Drivers/CMSIS/Include/core_cm4.h:1688:22:__NVIC_EnableIRQ	16	static
+../Core/Src/UsartProtocol.c:12:6:USARTADD	8	static
+../Core/Src/UsartProtocol.c:51:6:ReadStringofDate	16	static
+../Core/Src/UsartProtocol.c:59:6:getTXString	16	static
+../Core/Src/UsartProtocol.c:78:6:getReadComand	4	static
+../Core/Src/UsartProtocol.c:92:6:WaitingForCommands	4	static
+../Core/Src/UsartProtocol.c:100:6:HeatingWithoutTimer	4	static
+../Core/Src/UsartProtocol.c:108:6:StopHeating	4	static
+../Core/Src/UsartProtocol.c:114:6:CommandControl	8	static

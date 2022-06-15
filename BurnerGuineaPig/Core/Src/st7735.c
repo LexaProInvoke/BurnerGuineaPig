@@ -110,6 +110,22 @@ init_cmds3[] = {            		// Init for 7735R, part 3 (red or green tab)
 		ST7735_DISPON, DELAY, 		//  4: Main screen turn on, no args w/delay
 		100 };                  	//     100 ms delay
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+char hello[]= {'P','a','r','a','m',' ','t','='};
+char buffTemp[] = {'0','0','0','(','`','C',')'};
+uint16_t timerValue=0;
+
+
+void ViewParam(volatile char experimentTime)
+{
+	char mau[10];
+	mau[0] = experimentTime;
+	 //sprintf(mau, "%d",experimentTime);
+	 ST7735_DrawString(10,10,hello,sizeof hello,Font_11x18,ST7735_BLACK,ST7735_BLUE);
+	 ST7735_DrawString(10,30,buffTemp,sizeof buffTemp,Font_11x18,ST7735_BLACK,ST7735_BLUE);
+	 ST7735_DrawString(10,50,mau,1,Font_11x18,ST7735_BLACK,ST7735_BLUE);
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void ST7735_GPIO_Init(void);
 static void ST7735_WriteCommand(uint8_t cmd);
 static void ST7735_WriteData(uint8_t* buff, size_t buff_size);

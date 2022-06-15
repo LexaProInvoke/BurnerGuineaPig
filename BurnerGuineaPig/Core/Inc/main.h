@@ -29,6 +29,8 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "UsartProtocol.h"
+#include "HeatingControl.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -56,7 +58,7 @@ void Error_Handler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
-extern volatile uint8_t OffOnDiod;
+
 /* Private defines -----------------------------------------------------------*/
 #define RS_Pin GPIO_PIN_0
 #define RS_GPIO_Port GPIOC

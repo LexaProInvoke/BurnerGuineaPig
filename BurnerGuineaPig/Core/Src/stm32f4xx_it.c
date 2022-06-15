@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "HeatingControl.h"
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -215,12 +216,12 @@ TIM2->CR1 = TIM_CR1_CEN;
 
   if(OffOnDiod==0)
   {
-	  GPIOD->ODR |= 0b1111<<12;
+	  GPIOD->ODR |= 0b1<<12;
 	  OffOnDiod=1;
   }
   else
   {
-	  GPIOD->ODR &= ~(0b1111<<12);
+	  GPIOD->ODR &= ~(0b1<<12);
 	  OffOnDiod=0;
   }
   /* USER CODE END TIM2_IRQn 1 */
@@ -232,9 +233,15 @@ TIM2->CR1 = TIM_CR1_CEN;
 void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
-
+	 // получить данное
+	if(USART2->SR || 0b1<<7)
+	{
+	stringWithReceivedData[0] = USART2->DR;
+	}
+	getTXString(USART2->DR);////////////////////////прерывание принятия байта скореее всего проверять флаги
+	USART2->DR = stringWithReceivedData[0]; // Сделать отправку отдельой командой почитать как вызвать прерывания для отправки по усарт
   /* USER CODE END USART2_IRQn 0 */
-  HAL_UART_IRQHandler(&huart2);
+
   /* USER CODE BEGIN USART2_IRQn 1 */
 
   /* USER CODE END USART2_IRQn 1 */

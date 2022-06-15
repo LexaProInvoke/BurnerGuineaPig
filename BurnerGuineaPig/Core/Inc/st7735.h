@@ -14,11 +14,7 @@
 #include <stdbool.h>
 
 
-//#include "image2ChargeIsOver.h"
-//#include "image3ConnectorRemoved.h"
-//#include "image4PlagIn.h"
-//#include "image5WaitForTheStart.h"
-//#include "image6ChargeStart.h"
+void ViewParam(volatile char experimentTime);
 
 
 extern SPI_HandleTypeDef ST7735_SPI_PORT;

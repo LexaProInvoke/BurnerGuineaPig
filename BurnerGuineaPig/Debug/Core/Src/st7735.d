@@ -29,6 +29,7 @@ Core/Src/st7735.o: ../Core/Src/st7735.c ../Core/Inc/st7735.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
+ ../Core/Inc/UsartProtocol.h ../Core/Inc/HeatingControl.h \
  ../Core/Inc/main.h
 ../Core/Inc/st7735.h:
 ../Core/Inc/fonts.h:
@@ -63,4 +64,6 @@ Core/Src/st7735.o: ../Core/Src/st7735.c ../Core/Inc/st7735.h \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
+../Core/Inc/UsartProtocol.h:
+../Core/Inc/HeatingControl.h:
 ../Core/Inc/main.h:
