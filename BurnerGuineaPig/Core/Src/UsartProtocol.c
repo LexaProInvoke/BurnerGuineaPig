@@ -1,14 +1,20 @@
 #include "UsartProtocol.h"
-#include "main.h"
+#include "ds18b20.h"
 
 states_Control_Device state_Control_Device = 0;
 volatile char stringWithReceivedData[8];
-volatile uint8_t FlugOfEndCommand = 0;//флаг когда закончилась команда.
-uint8_t StringOfByte[LenghtTXString];
-uint8_t BuffStringOfByte[LenghtTXString];
+volatile uint8_t flugOfEndCommand = 0;//флаг когда закончилась команда.
+uint8_t commandCheckFlag = CommandNotIdentified;//or CommandIdentified
+uint8_t stringWithCommand[LenghtTXString];
+uint8_t buffStringWithCommand[LenghtTXString];
 uint8_t counterTXGetByte = 0;
-int NumberCommand = 0;
+volatile uint8_t TemperatureIsCorrect = TemperatureCorrect;
 
+int numberCommand = 0;
+int TIM2ARR = 0;
+int TIM2PSC = 0;
+uint32_t TimeFromBuffer = 0;
+volatile uint16_t TemperatureFromBuffer = 0;
 void USARTADD()
 {//Включаем тактирование UART1. Он подключен к шине APB1
 	RCC->APB1ENR |= 0b1<<17; // включаем тактирование UART1
@@ -53,71 +59,145 @@ void ReadStringofDate()		//функция копирования данных в буффер
 	uint8_t count;
 	for(count = 0; count< LenghtTXString; count++)
 	{
-		BuffStringOfByte[count]=StringOfByte[count];
+		buffStringWithCommand[count]=stringWithCommand[count];
 	}
 }
 void getTXString(uint8_t BuffForByte)
 {
 	if(counterTXGetByte < LenghtTXString-1)
 	{
-		StringOfByte[counterTXGetByte] = BuffForByte;
+		stringWithCommand[counterTXGetByte] = BuffForByte;
 	}
 	else if(counterTXGetByte < LenghtTXString)
 	{
-		StringOfByte[counterTXGetByte] = BuffForByte;
-		FlugOfEndCommand = 1;//флаг конца команды
+		stringWithCommand[counterTXGetByte] = BuffForByte;
+		flugOfEndCommand = 1;//флаг конца команды
 		ReadStringofDate();
 	}
 	else
 	{
 		counterTXGetByte = 0;
-		StringOfByte[counterTXGetByte] = BuffForByte;
+		stringWithCommand[counterTXGetByte] = BuffForByte;
 	}
 	counterTXGetByte++;
 }
-void getReadComand()//функция определения команды из буффера
+void ReadComandFromBuffer()//функция определения команды из буффера
 {
-	if((BuffStringOfByte[0] - '0') == 8  && (BuffStringOfByte[31] - '0') ==8)
+	if((buffStringWithCommand[0] - '0') == FlagStartCommand  && (buffStringWithCommand[31] - '0') == FlagEndCommand)
 	{
-		//СurrentСommand = 0;
-		NumberCommand = (BuffStringOfByte[1] - '0') * 10;
-		NumberCommand += (BuffStringOfByte[2] - '0');
+		numberCommand = (buffStringWithCommand[1] - '0') * 10;
+		numberCommand += (buffStringWithCommand[2] - '0');
+		commandCheckFlag = CommandIdentified;
 	}
 	else
 	{
+		counterTXGetByte = 0;
+		commandCheckFlag = CommandNotIdentified;
 		counterTXGetByte = 0;//обнуление счетчика байт если начальный и конечный байт команд не соответствуют
 	}
+}
+void ReadPSCandARRFromBuffer()
+{
+	TIM2PSC = (buffStringWithCommand[7] - '0') * 10000;
+	TIM2PSC += (buffStringWithCommand[8] - '0') * 1000;
+	TIM2PSC += (buffStringWithCommand[9] - '0') * 100;
+	TIM2PSC += (buffStringWithCommand[10] - '0') * 10;
+	TIM2PSC += (buffStringWithCommand[11] - '0');
+	TIM2ARR =  (buffStringWithCommand[12] - '0') * 10000;
+	TIM2ARR += (buffStringWithCommand[13] - '0') * 1000;
+	TIM2ARR += (buffStringWithCommand[14] - '0') * 100;
+	TIM2ARR += (buffStringWithCommand[15] - '0') * 10;
+	TIM2ARR += (buffStringWithCommand[16] - '0');
+}
+
+void ReadTimeFromBuffer()
+{
+	TimeFromBuffer = (buffStringWithCommand[24] - '0') * 1000000;
+	TimeFromBuffer += (buffStringWithCommand[25] - '0') * 100000;
+	TimeFromBuffer += (buffStringWithCommand[26] - '0') * 10000;
+	TimeFromBuffer += (buffStringWithCommand[27] - '0') * 1000;
+	TimeFromBuffer += (buffStringWithCommand[28] - '0') * 100;
+	TimeFromBuffer += (buffStringWithCommand[29] - '0') * 10;
+	TimeFromBuffer += (buffStringWithCommand[30] - '0');
+}
+
+void ReadTemperatureFromBuffer()
+{
+	TemperatureFromBuffer = (buffStringWithCommand[17] - '0') * 100;
+	TemperatureFromBuffer += (buffStringWithCommand[18] - '0') * 10;
+	TemperatureFromBuffer += (buffStringWithCommand[19] - '0');
+}
+void HeatingWithTimer()
+{
+	//ReadPSCandARRFromBuffer();
+	ReadTimeFromBuffer();
+	ReadTemperatureFromBuffer();
+
+
+				StartSignalForHeating();////////////исправить нужно чтобы таймер включался как только будет нужная температура
+				if(TemperatureFromBuffer == SensorTemperature)
+				{
+					SettingHeatingTime(TimeFromBuffer);//после того как температура будет нужной
+					StartOneSecondTimer();//добавить индикациб для пользователе  оповещение о начале экспеимента
+					flugOfEndCommand = 0;
+				}
+				else
+				{
+					if(TemperatureFromBuffer>SensorTemperature)
+					{
+						TemperatureIsCorrect = TemperatureIsHigher;
+					}
+					else
+					{
+						TemperatureIsCorrect = TemperatureIsLower;
+					}
+					AutoFrequencySetting(TemperatureIsCorrect);
+				}
+
+
+
+
+
 }
 
 void WaitingForCommands()
 {
-	if(NumberCommand != 0)	//проверка пришла ли команды
+	if(numberCommand != 0)	//проверка пришла ли команды
 	{
-		state_Control_Device = NumberCommand;//если пришла то вызываем соответствующую функцию
+		state_Control_Device = numberCommand;//если пришла то вызываем соответствующую функцию
 	}
 }
 
 void HeatingWithoutTimer()
 {
-	if(state_Control_Device != Stop_Heating)
-	{
-
-	}
+//	if(state_Control_Device != Stop_Heating)
+//	{
+//		ReadPSCandARRFromBuffer();
+//		if(SettingFrequencyOutputSignal(TIM2PSC,TIM2ARR) == 1)
+//		{
+//			StartSignalForHeating();
+//		}
+//		else
+//		{
+//			//error send error on computer end displey
+//		}
+//	}
 }
 
 void StopHeating()
 {
-
+	StopSignalForHeating();
 }
 //void SettingTemperature настройка температуры с передачей параметра коефициента
 
 void CommandControl()
 {
-	switch(state_Control_Device)
+	switch(numberCommand)
 	{
 	case Waiting_For_Commands:	WaitingForCommands();	break;
-	case Heating_without_timer: HeatingWithoutTimer();	break;
 	case Stop_Heating: 			StopHeating(); 			break;
+	case Heating_without_timer: HeatingWithoutTimer();	break;
+	case Heating_with_timer: HeatingWithTimer();	break;
 	default: break;
 	}
 }

@@ -183,10 +183,10 @@ void PendSV_Handler(void)
 /**
   * @brief This function handles System tick timer.
   */
+
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
@@ -209,24 +209,62 @@ void TIM2_IRQHandler(void)
   /* USER CODE BEGIN TIM2_IRQn 0 */
 
 TIM2->SR &= ~TIM_SR_UIF;
-TIM2->CR1 = TIM_CR1_CEN;
+//TIM2->CR1 = TIM_CR1_CEN;
   /* USER CODE END TIM2_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim2);
+ // HAL_TIM_IRQHandler(&htim2);
   /* USER CODE BEGIN TIM2_IRQn 1 */
-
-  if(OffOnDiod==0)
+  if(offOnDiod==0)
   {
 	  GPIOD->ODR |= 0b1<<12;
-	  OffOnDiod=1;
+	  offOnDiod=1;
+	  TIM2->PSC = PSCHighLevelSignal;//8399
+	  TIM2->ARR = ARRHighLevelSignal;
   }
   else
   {
 	  GPIOD->ODR &= ~(0b1<<12);
-	  OffOnDiod=0;
+	  offOnDiod=0;
+	  TIM2->PSC = PSCLowLevelSignal;//8399
+	  TIM2->ARR = ARRLowLevelSignal;
   }
   /* USER CODE END TIM2_IRQn 1 */
 }
 
+void TIM3_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM2_IRQn 0 */
+
+TIM3->SR &= ~TIM_SR_UIF;
+TIM3->CR1 = TIM_CR1_CEN;
+  /* USER CODE END TIM2_IRQn 0 */
+ // HAL_TIM_IRQHandler(&htim2);
+  /* USER CODE BEGIN TIM2_IRQn 1 */
+if(countdownHeatingTime > 0)
+{
+	countdownHeatingTime--;
+}
+else
+{
+	StopSignalForHeating();
+	StopOneSecondTimer();
+	////////////////////////команда оповещения о том что єксперимент закончен//вызвать прерывание усрата?э
+}
+}
+
+//uint8_t NumberCommand =0;
+//uint8_t bit = 0;
+//void TIM4_IRQHandler(void)
+//{
+//TIM4->SR &= ~TIM_SR_UIF;
+//TIM4->CR1 = TIM_CR1_CEN;
+//if(DelayTime > 0)
+//{DelayTime--;}
+//else
+//{
+//
+//}
+//  /* USER CODE END TIM2_IRQn 1 */
+//}
 /**
   * @brief This function handles USART2 global interrupt.
   */

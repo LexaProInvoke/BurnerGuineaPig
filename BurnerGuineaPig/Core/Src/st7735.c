@@ -1,5 +1,3 @@
-
-
 #include "st7735.h"
 #include "stdlib.h"
 #include "main.h"
@@ -115,7 +113,14 @@ char hello[]= {'P','a','r','a','m',' ','t','='};
 char buffTemp[] = {'0','0','0','(','`','C',')'};
 uint16_t timerValue=0;
 
-
+void IndicationStartHeating()//зеленый круг
+{
+	ST7735_FillCircle(50,50,10,ST7735_GREEN);
+}
+void IndicationStopHeating()//красный круг
+{
+	ST7735_FillCircle(50,50,10,ST7735_RED);
+}
 void ViewParam(volatile char experimentTime)
 {
 	char mau[10];

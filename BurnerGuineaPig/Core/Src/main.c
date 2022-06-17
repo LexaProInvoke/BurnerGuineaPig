@@ -1,6 +1,7 @@
 #include "main.h"
 #include "st7735.h"
 #include "stdio.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -21,25 +22,25 @@ int main(void)
 
   MX_GPIO_Init();
   configGPIO();
-  MX_TIM2_Init();
+ // MX_TIM2_Init();
   MX_SPI1_Init();
-
-  TimerSetting();
+  OneSecondTimerSetting();
+  FrequencyTimerSetting();
 
   ST7735_Init();
 
   ST7735_FillScreen(ST7735_BLUE);
 
   USARTADD();
-
+  //MicrosecondTimer();//настройка микоросекундного таймера для 1-wire интерфейса.
   while (1)
   {
+	  //TemperatureReading();
 	  ViewParam(stringWithReceivedData[0]);
-	  if(FlugOfEndCommand == 1)
+	  if(flugOfEndCommand == 1)
 	  {
-		  getReadComand();
+		  ReadComandFromBuffer();
 		  CommandControl();//вункция выполнения команды
-		  FlugOfEndCommand = 0;
 	  }
   }
 }
