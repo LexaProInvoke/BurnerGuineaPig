@@ -2,31 +2,13 @@
 #include "HeatingControl.h"
  volatile uint8_t offOnDiod = 0;
  volatile uint32_t countdownHeatingTime  = 0;
- volatile uint16_t ARRHighLevelSignal = 9999;
- volatile uint16_t ARRLowLevelSignal = 9999;
- volatile uint16_t PSCHighLevelSignal = 8399;
- volatile uint16_t PSCLowLevelSignal = 8399;
+ volatile uint32_t TimeHighLevel = 5;
+ volatile uint32_t TimeLowLevel = 5;
+ volatile uint32_t TimeHighLevelBuff = 10;
+ volatile uint32_t TimeLowLevelBuff = 10;
  volatile uint8_t ControllerError = 0;
-// volatile uint32_t DelayTime = 0;
-//void MicrosecondTimer()//10 microsecond
-//{
-//		RCC -> APB1ENR |= RCC_APB1ENR_TIM4EN;	//разрешить тактирование таймера 2
-//		TIM4->SMCR &= ~ TIM_SMCR_SMS;			//внутреннее тактирование таймера
-//		//TIM3 -> CR1 = TIM_CR1_CEN;				//Устанавливаем режим работы таймера and start.
-//		TIM4->PSC = 839;//8399
-//		TIM4->ARR = 1;//9999
-//		TIM4->DIER |= TIM_DIER_UIE;				//Разрешаем прерыванияв регистре разрешения таймера
-//		NVIC_EnableIRQ (TIM4_IRQn);			//Разрешаем прерыванияв регистре контроллера прерываний
-//		StopOneSecondTimer();
-//}
-//void StartMicrosecondTimer()
-//{
-//	TIM4 -> CR1 |= TIM_CR1_CEN;
-//}
-//void StopMicrosecondTimer()
-//{
-//	TIM4 -> CR1 &= ~(TIM_CR1_CEN);
-//}
+ volatile uint16_t PSCFrequencyTimer = 839;
+ volatile uint16_t ARRFrequencyTimer = 9999;
 void OneSecondTimerSetting()
 {
 	RCC -> APB1ENR |= RCC_APB1ENR_TIM3EN;	//разрешить тактирование таймера 2
@@ -37,6 +19,7 @@ void OneSecondTimerSetting()
 	TIM3->DIER |= TIM_DIER_UIE;				//Разрешаем прерыванияв регистре разрешения таймера
 	NVIC_EnableIRQ (TIM3_IRQn);			//Разрешаем прерыванияв регистре контроллера прерываний
 	StopOneSecondTimer();
+	NVIC_SetPriority(TIM3_IRQn, 1);
 }
 void SettingHeatingTime(uint32_t NewTime)//секундный обратный отсчет
 {
@@ -55,133 +38,96 @@ void FrequencyTimerSetting()
 	RCC -> APB1ENR |= RCC_APB1ENR_TIM2EN;	//разрешить тактирование таймера 2
 	TIM2->SMCR &= ~ TIM_SMCR_SMS;			//внутреннее тактирование таймера
 	//TIM2 -> CR1 = TIM_CR1_CEN;				//Устанавливаем режим работы таймера and start.
-	TIM2->PSC = 8399;//8399
+	TIM2->PSC = 839;//8399  84000000/840 = 100000
 	TIM2->ARR = 9999;//9999
 	TIM2->DIER |= TIM_DIER_UIE;				//Разрешаем прерыванияв регистре разрешения таймера
 	NVIC_EnableIRQ (TIM2_IRQn);			//Разрешаем прерыванияв регистре контроллера прерываний
-	StopSignalForHeating();
+	NVIC_SetPriority(TIM2_IRQn, 2);
+	TIM2 -> CR1 &= ~(TIM_CR1_CEN);
 }
 //сделать микросекундный и секундный таймер
-uint8_t SettingFrequencyOutputSignal(uint16_t PSCHighLevel, uint16_t PSCLowLevel, uint16_t ARRHighLevel, uint16_t ARRLowLevel)
-{
-	if((PSCHighLevel < 65000) && (PSCHighLevel > 0) && (PSCLowLevel <65000) && (PSCLowLevel > 0) &&(ARRHighLevel < 65000) && (ARRHighLevel > 0) && (ARRLowLevel <65000) && (ARRLowLevel > 0))
-	{
-		ARRHighLevelSignal 	= ARRHighLevel;
-		ARRLowLevelSignal 	= ARRLowLevel;
-		PSCHighLevelSignal	= PSCHighLevel;
-		PSCLowLevelSignal 	= PSCLowLevel;
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-	//84MGz / 8399 = 100 mcs * 9999 = 1 секунда//функция настройки частоты сигнала выхода
-}
+
 void StartSignalForHeating()
 {
 	TIM2 -> CR1 |= TIM_CR1_CEN;
+	IndicationStartHeating();
 }
 void StopSignalForHeating()
 {
 	TIM2 -> CR1 &= ~(TIM_CR1_CEN);
 	GPIOD->ODR &= ~(0b1<<12);//потушить светодиод
+	IndicationStopHeating();
+	numberCommand = Stop_Heating;
 	//+gpio v 0
 }
 
-//void UpTemperature()
-//{
-//	if(ARRHighLevelSignal > 64999)
-//	{
-//		if(ARRLowLevelSignal < 2)
-//		{
-//			if(PSCHighLevelSignal > 64999)
-//			{
-//				if(PSCLowLevelSignal < 2)
-//				{
-//					//error
-//					StopSignalForHeating();
-//					ControllerError = ErrorInFrequencySelection;
-//				}
-//				else
-//				{
-//					PSCLowLevelSignal--;
-//					ARRHighLevelSignal = 9999;
-//					ARRLowLevelSignal = 9999;
-//				}
-//			}
-//			else
-//			{
-//				PSCHighLevelSignal++;
-//				ARRHighLevelSignal = 9999;
-//				ARRLowLevelSignal = 9999;
-//			}
-//
-//		}
-//		else
-//		{
-//		ARRLowLevelSignal --;
-//		}
-//	}
-//	else
-//	{
-//		ARRHighLevelSignal++;
-//	}
-//
-//
-//
-//
-//}
-//void DownTemperature()
-//{
-//	if(ARRLowLevelSignal > 64999)
-//		{
-//			if(ARRHighLevelSignal < 2)
-//			{
-//				if(PSCLowLevelSignal > 64999)
-//				{
-//					if(PSCHighLevelSignal < 2)
-//					{
-//						//error
-//						StopSignalForHeating();
-//						ControllerError = ErrorInFrequencySelection;
-//					}
-//					else
-//					{
-//						PSCHighLevelSignal--;
-//						ARRHighLevelSignal = 9999;
-//						ARRLowLevelSignal = 9999;
-//					}
-//				}
-//				else
-//				{
-//					PSCLowLevelSignal++;
-//					ARRHighLevelSignal = 9999;
-//					ARRLowLevelSignal = 9999;
-//				}
-//
-//			}
-//			else
-//			{
-//			ARRHighLevelSignal --;
-//			}
-//		}
-//		else
-//		{
-//			ARRLowLevelSignal++;
-//		}
-//}
-//void AutoFrequencySetting(uint8_t TemperatureIsCorrect)
-//{
-//	if(TemperatureIsCorrect == TemperatureIsHigher)
-//	{
-//		DownTemperature();
-//	}
-//	else
-//	{
-//		UpTemperature();
-//	}
-//}
+void UpTemperature()
+{
+	if(TimeHighLevel>9999)
+	{
+		if(TimeLowLevel==0)
+		{
+			ControllerError = ErrorTemperatureOverflow;
+		}
+		else
+		{
+			TimeLowLevel--;
+		}
+	}
+	else
+	{
+		TimeHighLevel++;
+		if(TimeLowLevel==0)
+		{
+			ControllerError = ErrorTemperatureOverflow;
+		}
+		else
+		{
+			TimeLowLevel--;
+		}
+	}
+	TimeHighLevelBuff = TimeHighLevel;
+	TimeLowLevelBuff = TimeLowLevel;
+}
+void DownTemperature()//TimeHighLevel
+{
+		if(TimeLowLevel>9999)
+		{
+			if(TimeHighLevel==0)
+			{
+				ControllerError = ErrorTemperatureOverflow;
+			}
+			else
+			{
+				TimeHighLevel--;
+			}
+		}
+		else
+		{
+			TimeLowLevel++;
+			if(TimeHighLevel==0)
+			{
+				ControllerError = ErrorTemperatureOverflow;
+			}
+			else
+			{
+				TimeHighLevel--;
+			}
+		}
+		TimeHighLevelBuff = TimeHighLevel;
+		TimeLowLevelBuff = TimeLowLevel;
+}
+void AutoFrequencySetting(uint8_t TemperatureIsCorrect)
+{
+	if(TemperatureIsCorrect == TemperatureIsHigher)
+	{
+		DownTemperature();
+	}
+	else
+	{
+		UpTemperature();
+	}
+}
 
 
 void configGPIO()

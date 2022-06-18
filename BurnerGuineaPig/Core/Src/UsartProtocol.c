@@ -1,20 +1,28 @@
 #include "UsartProtocol.h"
-#include "ds18b20.h"
+
 
 states_Control_Device state_Control_Device = 0;
 volatile char stringWithReceivedData[8];
+volatile uint16_t experimentNumber = 0;
 volatile uint8_t flugOfEndCommand = 0;//флаг когда закончилась команда.
 uint8_t commandCheckFlag = CommandNotIdentified;//or CommandIdentified
 uint8_t stringWithCommand[LenghtTXString];
 uint8_t buffStringWithCommand[LenghtTXString];
 uint8_t counterTXGetByte = 0;
+
+char IntstringForSendToPC[32] = {'0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'};
+//uint8_t IntstringForSendToPC[32]  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+volatile char StringForSendToPC[32];
+uint8_t indicateFirstInput=0;
+
 volatile uint8_t TemperatureIsCorrect = TemperatureCorrect;
 
-int numberCommand = 0;
+volatile int numberCommand = 0;
 int TIM2ARR = 0;
 int TIM2PSC = 0;
 uint32_t TimeFromBuffer = 0;
 volatile uint16_t TemperatureFromBuffer = 0;
+
 void USARTADD()
 {//Включаем тактирование UART1. Он подключен к шине APB1
 	RCC->APB1ENR |= 0b1<<17; // включаем тактирование UART1
@@ -53,6 +61,62 @@ void USARTADD()
 	USART2->CR3 = 0;
 	//USART2->
 	NVIC_EnableIRQ (USART2_IRQn);//разрешение прерыwаний усарт
+	NVIC_SetPriority(USART2_IRQn, 0);
+}
+void PreparCommandToSentComputer()
+{
+	char experimentNumberMusForSend[4] = {'0','0','0','0'};
+	sprintf(experimentNumberMusForSend,"%04u",experimentNumber);
+	char timeMusForSend[5] = {'0','0','0','0','0'};
+	sprintf(timeMusForSend,"%05u",countdownHeatingTime);
+	char tempMusForSend[3] = {'0','0','0'};
+	uint16_t TemperatureForPC = SensorTemperature;
+	sprintf(tempMusForSend,"%03u",TemperatureForPC);
+	char PSCmusForSend[5] = {'0','0','0','0','0'};
+	sprintf(PSCmusForSend,"%05u",PSCFrequencyTimer);
+	char ARRmusForSend[5] = {'0','0','0','0','0'};
+	sprintf(ARRmusForSend,"%05u",ARRFrequencyTimer);
+	IntstringForSendToPC[0] = '8';
+	IntstringForSendToPC[1]= numberCommand/10 + '0';//nomberCommand
+	IntstringForSendToPC[2]= numberCommand%10 + '0';
+	IntstringForSendToPC[3]=experimentNumberMusForSend[0];
+	IntstringForSendToPC[4]=experimentNumberMusForSend[1];
+	IntstringForSendToPC[5]=experimentNumberMusForSend[2];
+	IntstringForSendToPC[6]=experimentNumberMusForSend[3];
+	IntstringForSendToPC[7]= PSCmusForSend[0];
+	IntstringForSendToPC[8]= PSCmusForSend[1];
+	IntstringForSendToPC[9]= PSCmusForSend[2];
+	IntstringForSendToPC[10]=PSCmusForSend[3];
+	IntstringForSendToPC[11]=PSCmusForSend[4];
+	IntstringForSendToPC[12]=ARRmusForSend[0];
+	IntstringForSendToPC[13]=ARRmusForSend[1];
+	IntstringForSendToPC[14]=ARRmusForSend[2];
+    IntstringForSendToPC[15]=ARRmusForSend[3];
+    IntstringForSendToPC[16]=ARRmusForSend[4];
+	//PSCFrequencyTimer; PSC|7|8|9|10|11|
+	//ARRFrequencyTimer; ARR12|13|14|15|16
+    IntstringForSendToPC[17]=tempMusForSend[0];
+    IntstringForSendToPC[18]=tempMusForSend[1];
+    IntstringForSendToPC[19]=tempMusForSend[2];
+    IntstringForSendToPC[26]=timeMusForSend[0];
+	IntstringForSendToPC[27]=timeMusForSend[1];
+	IntstringForSendToPC[28]=timeMusForSend[2];
+	IntstringForSendToPC[29]=timeMusForSend[3];
+	IntstringForSendToPC[30]=timeMusForSend[4];
+    IntstringForSendToPC[31] = '8';
+}
+
+void SendDataToComputer()
+{
+	int i = 0;
+	for(i=0;i<32;i++)
+	{
+		StringForSendToPC[i] = IntstringForSendToPC[i];
+		while((USART2->SR & USART_SR_TXE) == 0)
+		{}
+		USART2->DR = StringForSendToPC[i];
+
+	}
 }
 void ReadStringofDate()		//функция копирования данных в буффер
 {
@@ -91,10 +155,16 @@ void ReadComandFromBuffer()//функция определения команды из буффера
 	}
 	else
 	{
-		counterTXGetByte = 0;
 		commandCheckFlag = CommandNotIdentified;
 		counterTXGetByte = 0;//обнуление счетчика байт если начальный и конечный байт команд не соответствуют
 	}
+}
+void ReadExperimentNumber()
+{
+	experimentNumber =   (buffStringWithCommand[3] - '0') * 1000;
+	experimentNumber +=  (buffStringWithCommand[4] - '0') * 100;
+	experimentNumber +=  (buffStringWithCommand[5] - '0') * 10;
+	experimentNumber +=  (buffStringWithCommand[6] - '0');
 }
 void ReadPSCandARRFromBuffer()
 {
@@ -109,7 +179,6 @@ void ReadPSCandARRFromBuffer()
 	TIM2ARR += (buffStringWithCommand[15] - '0') * 10;
 	TIM2ARR += (buffStringWithCommand[16] - '0');
 }
-
 void ReadTimeFromBuffer()
 {
 	TimeFromBuffer = (buffStringWithCommand[24] - '0') * 1000000;
@@ -120,46 +189,56 @@ void ReadTimeFromBuffer()
 	TimeFromBuffer += (buffStringWithCommand[29] - '0') * 10;
 	TimeFromBuffer += (buffStringWithCommand[30] - '0');
 }
-
 void ReadTemperatureFromBuffer()
 {
 	TemperatureFromBuffer = (buffStringWithCommand[17] - '0') * 100;
 	TemperatureFromBuffer += (buffStringWithCommand[18] - '0') * 10;
 	TemperatureFromBuffer += (buffStringWithCommand[19] - '0');
 }
+void TemperatureComparison(uint8_t WithTimerOrNot)
+{
+	if(TemperatureFromBuffer == SensorTemperature)
+	{
+		if(indicateFirstInput == 1)
+		{
+		if(WithTimerOrNot == WithTimer)
+		{
+			StartOneSecondTimer();//после того как температура будет нужной
+		}
+		IndicationStartExperiment();
+		indicateFirstInput=0;
+		//добавить индикацию для пользователе  оповещение о начале экспеимента
+		}
+
+		flugOfEndCommand = 0;
+	}
+	else
+	{
+		if(TemperatureFromBuffer<SensorTemperature)
+		{
+			TemperatureIsCorrect = TemperatureIsHigher;
+		}
+		else
+		{
+			TemperatureIsCorrect = TemperatureIsLower;
+		}
+		AutoFrequencySetting(TemperatureIsCorrect);
+	}
+}
 void HeatingWithTimer()
 {
+	ReadExperimentNumber();
 	//ReadPSCandARRFromBuffer();
 	ReadTimeFromBuffer();
 	ReadTemperatureFromBuffer();
-
-
-				StartSignalForHeating();////////////исправить нужно чтобы таймер включался как только будет нужная температура
-				if(TemperatureFromBuffer == SensorTemperature)
-				{
-					SettingHeatingTime(TimeFromBuffer);//после того как температура будет нужной
-					StartOneSecondTimer();//добавить индикациб для пользователе  оповещение о начале экспеимента
-					flugOfEndCommand = 0;
-				}
-				else
-				{
-					if(TemperatureFromBuffer>SensorTemperature)
-					{
-						TemperatureIsCorrect = TemperatureIsHigher;
-					}
-					else
-					{
-						TemperatureIsCorrect = TemperatureIsLower;
-					}
-					AutoFrequencySetting(TemperatureIsCorrect);
-				}
-
-
-
-
-
+	SettingHeatingTime(TimeFromBuffer);
+	StartSignalForHeating();////////////исправить нужно чтобы таймер включался как только будет нужная температура
+	TemperatureComparison(WithTimer);
+	numberCommand=Temperature_Comparison_WithTimer;
+	indicateFirstInput=1;
+	PreparCommandToSentComputer();
+	SendDataToComputer();
 }
-
 void WaitingForCommands()
 {
 	if(numberCommand != 0)	//проверка пришла ли команды
@@ -170,34 +249,38 @@ void WaitingForCommands()
 
 void HeatingWithoutTimer()
 {
-//	if(state_Control_Device != Stop_Heating)
-//	{
-//		ReadPSCandARRFromBuffer();
-//		if(SettingFrequencyOutputSignal(TIM2PSC,TIM2ARR) == 1)
-//		{
-//			StartSignalForHeating();
-//		}
-//		else
-//		{
-//			//error send error on computer end displey
-//		}
-//	}
+		ReadExperimentNumber();
+		ReadTemperatureFromBuffer();
+		StartSignalForHeating();
+		TemperatureComparison(WithoutTimer);
+		numberCommand=Temperature_Comparison_WithoutTimer;
+		indicateFirstInput = 1;
+		PreparCommandToSentComputer();
+		SendDataToComputer();
 }
 
 void StopHeating()
 {
+
 	StopSignalForHeating();
+	numberCommand = Stop_Heating;
+	PreparCommandToSentComputer();
+	SendDataToComputer();
+	numberCommand = Waiting_For_Commands;
 }
+
 //void SettingTemperature настройка температуры с передачей параметра коефициента
 
 void CommandControl()
 {
 	switch(numberCommand)
 	{
-	case Waiting_For_Commands:	WaitingForCommands();	break;
-	case Stop_Heating: 			StopHeating(); 			break;
-	case Heating_without_timer: HeatingWithoutTimer();	break;
-	case Heating_with_timer: HeatingWithTimer();	break;
+	case Waiting_For_Commands:					WaitingForCommands();				break;
+	case Stop_Heating: 							StopHeating(); 						break;
+	case Heating_without_timer: 				HeatingWithoutTimer();				break;
+	case Heating_with_timer:					HeatingWithTimer();					break;
+	case Temperature_Comparison_WithTimer:		TemperatureComparison(WithTimer);	break;
+	case Temperature_Comparison_WithoutTimer: 	TemperatureComparison(WithoutTimer);break;
 	default: break;
 	}
 }

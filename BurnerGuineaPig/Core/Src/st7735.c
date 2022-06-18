@@ -113,14 +113,7 @@ char hello[]= {'P','a','r','a','m',' ','t','='};
 char buffTemp[] = {'0','0','0','(','`','C',')'};
 uint16_t timerValue=0;
 
-void IndicationStartHeating()//зеленый круг
-{
-	ST7735_FillCircle(50,50,10,ST7735_GREEN);
-}
-void IndicationStopHeating()//красный круг
-{
-	ST7735_FillCircle(50,50,10,ST7735_RED);
-}
+
 void ViewParam(volatile char experimentTime)
 {
 	char mau[10];
@@ -907,4 +900,17 @@ int16_t ST7735_GetHeight(void)
 int16_t ST7735_GetWidth(void)
 {
 	return _width;
+}
+
+void IndicationStartExperiment()//Blue круг
+{
+	ST7735_FillCircle(70,70,10,ST7735_CYAN);
+}
+void IndicationStartHeating()//зеленый круг
+{
+	ST7735_FillCircle(70,70,10,ST7735_GREEN);
+}
+void IndicationStopHeating()//красный круг
+{
+	ST7735_FillCircle(70,70,10,ST7735_RED);
 }

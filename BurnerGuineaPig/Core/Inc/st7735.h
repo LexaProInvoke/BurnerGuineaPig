@@ -130,8 +130,6 @@ extern SPI_HandleTypeDef ST7735_SPI_PORT;
 #define ST7735_WHITE   0xFFFF
 
 void PrintPage(uint8_t numberPicture);
-void IndicationStartHeating();
-
 void ST7735_Backlight_On(void);
 void ST7735_Backlight_Off(void);
 void ST7735_Init(void);
@@ -160,6 +158,8 @@ void ST7735_SetRotation(uint8_t m);
 uint8_t ST7735_GetRotation(void);
 int16_t ST7735_GetHeight(void);
 int16_t ST7735_GetWidth(void);
-
+void IndicationStartHeating();
+void IndicationStopHeating();
+void IndicationStartExperiment();
 
 #endif // __ST7735_H__

@@ -3,24 +3,25 @@
 #ifndef INC_HEATINGCONTROL_H_
 #define INC_HEATINGCONTROL_H_
 
-#define ErrorInFrequencySelection 1;
+#define ErrorTemperatureOverflow 1;//не хватает времени для нагрева до заданной температуры
+extern volatile uint16_t PSCFrequencyTimer;
+extern volatile uint16_t ARRFrequencyTimer;
 extern volatile uint8_t ControllerError;
 
 extern volatile uint8_t offOnDiod;
 extern volatile uint32_t countdownHeatingTime;
 extern volatile uint32_t DelayTime;
 
-extern volatile uint16_t ARRHighLevelSignal;
-extern volatile uint16_t ARRLowLevelSignal;
-extern volatile uint16_t PSCHighLevelSignal;
-extern volatile uint16_t PSCLowLevelSignal;
-
+extern volatile uint32_t TimeHighLevel;
+extern volatile uint32_t TimeLowLevel;
+extern volatile uint32_t TimeHighLevelBuff;
+extern volatile uint32_t TimeLowLevelBuff;
 //void MicrosecondTimer();
 //void StartMicrosecondTimer();
 //void StopMicrosecondTimer();
 
 uint8_t SettingFrequencyOutputSignal(uint16_t PSCHighLevel, uint16_t PSCLowLevel, uint16_t ARRHighLevel, uint16_t ARRLowLevel);
-
+void AutoFrequencySetting(uint8_t TemperatureIsCorrect);
 
 void FrequencyTimerSetting();
 void StartSignalForHeating();

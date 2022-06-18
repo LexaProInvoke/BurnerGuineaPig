@@ -8,8 +8,8 @@
 #include "ds18b20.h"
 
 volatile uint32_t timerDelay=0;
-volatile float SensorTemperature = 0;
-
+volatile float tempMusForSend = 20;
+volatile float SensorTemperature = 20;
 uint8_t status;
 uint8_t dt[8];
 uint16_t raw_temper;

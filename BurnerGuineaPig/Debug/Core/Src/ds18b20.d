@@ -29,7 +29,8 @@ Core/Src/ds18b20.o: ../Core/Src/ds18b20.c ../Core/Inc/ds18b20.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
  ../Core/Inc/stm32f4xx_it.h ../Core/Inc/main.h \
- ../Core/Inc/UsartProtocol.h ../Core/Inc/HeatingControl.h
+ ../Core/Inc/UsartProtocol.h ../Core/Inc/ds18b20.h \
+ ../Core/Inc/HeatingControl.h
 ../Core/Inc/ds18b20.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
@@ -63,4 +64,5 @@ Core/Src/ds18b20.o: ../Core/Src/ds18b20.c ../Core/Inc/ds18b20.h \
 ../Core/Inc/stm32f4xx_it.h:
 ../Core/Inc/main.h:
 ../Core/Inc/UsartProtocol.h:
+../Core/Inc/ds18b20.h:
 ../Core/Inc/HeatingControl.h:

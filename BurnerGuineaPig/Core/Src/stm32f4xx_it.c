@@ -204,31 +204,54 @@ void SysTick_Handler(void)
 /**
   * @brief This function handles TIM2 global interrupt.
   */
+#include "ds18b20.h"
 void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
 
 TIM2->SR &= ~TIM_SR_UIF;
-//TIM2->CR1 = TIM_CR1_CEN;
+TIM2->CR1 = TIM_CR1_CEN;
   /* USER CODE END TIM2_IRQn 0 */
  // HAL_TIM_IRQHandler(&htim2);
   /* USER CODE BEGIN TIM2_IRQn 1 */
-  if(offOnDiod==0)
+  if(offOnDiod == 0 && TimeLowLevelBuff != 0)
   {
-	  GPIOD->ODR |= 0b1<<12;
-	  offOnDiod=1;
-	  TIM2->PSC = PSCHighLevelSignal;//8399
-	  TIM2->ARR = ARRHighLevelSignal;
+	  GPIOD->ODR &= ~(0b1<<12);
+	  TimeLowLevelBuff--;
   }
   else
   {
-	  GPIOD->ODR &= ~(0b1<<12);
-	  offOnDiod=0;
-	  TIM2->PSC = PSCLowLevelSignal;//8399
-	  TIM2->ARR = ARRLowLevelSignal;
+	  offOnDiod=1;
+	  TimeLowLevelBuff = TimeLowLevel;
+	  if(offOnDiod==1 && TimeHighLevelBuff !=0)
+	  {
+		  GPIOD->ODR |= 0b1<<12;
+		  TimeHighLevelBuff--;
+	  }
+	  else
+	  {
+		  offOnDiod=0;
+		  TimeHighLevelBuff = TimeHighLevel;
+	  }
+
+
   }
+//  if(TemperatureFromBuffer != SensorTemperature)
+//  {
+//	  if(TemperatureFromBuffer<SensorTemperature)
+//	  {
+//  		TemperatureIsCorrect = TemperatureIsHigher;
+//	  }
+//	  else
+//	  {
+//		TemperatureIsCorrect = TemperatureIsLower;
+//	  }
+//	  AutoFrequencySetting(TemperatureIsCorrect);
+//  }
   /* USER CODE END TIM2_IRQn 1 */
 }
+
+
 
 void TIM3_IRQHandler(void)
 {
@@ -245,29 +268,15 @@ if(countdownHeatingTime > 0)
 }
 else
 {
-	StopSignalForHeating();
+
 	StopOneSecondTimer();
+	StopSignalForHeating();
 	////////////////////////команда оповещения о том что єксперимент закончен//вызвать прерывание усрата?э
 }
 }
 
-//uint8_t NumberCommand =0;
-//uint8_t bit = 0;
-//void TIM4_IRQHandler(void)
-//{
-//TIM4->SR &= ~TIM_SR_UIF;
-//TIM4->CR1 = TIM_CR1_CEN;
-//if(DelayTime > 0)
-//{DelayTime--;}
-//else
-//{
-//
-//}
-//  /* USER CODE END TIM2_IRQn 1 */
-//}
-/**
-  * @brief This function handles USART2 global interrupt.
-  */
+
+
 void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
@@ -276,8 +285,8 @@ void USART2_IRQHandler(void)
 	{
 	stringWithReceivedData[0] = USART2->DR;
 	}
-	getTXString(USART2->DR);////////////////////////прерывание принятия байта скореее всего проверять флаги
-	USART2->DR = stringWithReceivedData[0]; // Сделать отправку отдельой командой почитать как вызвать прерывания для отправки по усарт
+	getTXString(USART2->DR);
+	//USART2->DR = stringWithReceivedData[0]; // Сделать отправку отдельой командой почитать как вызвать прерывания для отправки по усарт
   /* USER CODE END USART2_IRQn 0 */
 
   /* USER CODE BEGIN USART2_IRQn 1 */
