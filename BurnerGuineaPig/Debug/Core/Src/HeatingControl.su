@@ -1,13 +1,13 @@
 ../Drivers/CMSIS/Include/core_cm4.h:1688:22:__NVIC_EnableIRQ	16	static
 ../Drivers/CMSIS/Include/core_cm4.h:1816:22:__NVIC_SetPriority	16	static
-../Core/Src/HeatingControl.c:12:6:OneSecondTimerSetting	8	static
+../Core/Src/HeatingControl.c:12:6:OneSecondTimer_Init	8	static
 ../Core/Src/HeatingControl.c:24:6:SettingHeatingTime	16	static
 ../Core/Src/HeatingControl.c:28:6:StartOneSecondTimer	4	static
 ../Core/Src/HeatingControl.c:32:6:StopOneSecondTimer	4	static
-../Core/Src/HeatingControl.c:36:6:FrequencyTimerSetting	8	static
+../Core/Src/HeatingControl.c:36:6:FrequencyTimer_Init	8	static
 ../Core/Src/HeatingControl.c:50:6:StartSignalForHeating	8	static
 ../Core/Src/HeatingControl.c:55:6:StopSignalForHeating	8	static
 ../Core/Src/HeatingControl.c:64:6:UpTemperature	4	static
 ../Core/Src/HeatingControl.c:92:6:DownTemperature	4	static
 ../Core/Src/HeatingControl.c:120:6:AutoFrequencySetting	16	static
-../Core/Src/HeatingControl.c:133:6:configGPIO	4	static
+../Core/Src/HeatingControl.c:133:6:ConfigGPIO	4	static

@@ -14,7 +14,7 @@
 #include <stdbool.h>
 
 
-void ViewParam(volatile char experimentTime);
+void ViewParam(uint32_t countdownHeatingTime);
 
 
 extern SPI_HandleTypeDef ST7735_SPI_PORT;

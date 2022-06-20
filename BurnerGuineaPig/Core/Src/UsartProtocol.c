@@ -2,7 +2,6 @@
 
 
 states_Control_Device state_Control_Device = 0;
-volatile char stringWithReceivedData[8];
 volatile uint16_t experimentNumber = 0;
 volatile uint8_t flugOfEndCommand = 0;//флаг когда закончилась команда.
 uint8_t commandCheckFlag = CommandNotIdentified;//or CommandIdentified
@@ -23,7 +22,7 @@ int TIM2PSC = 0;
 uint32_t TimeFromBuffer = 0;
 volatile uint16_t TemperatureFromBuffer = 0;
 
-void USARTADD()
+void USART_Init()
 {//Включаем тактирование UART1. Он подключен к шине APB1
 	RCC->APB1ENR |= 0b1<<17; // включаем тактирование UART1
 	//UART1 использует выводы: PA2 (для сигнала TX) и PA3 (сигнал RX). Надо задать конфигурацию для них.
@@ -188,6 +187,7 @@ void ReadTimeFromBuffer()
 	TimeFromBuffer += (buffStringWithCommand[28] - '0') * 100;
 	TimeFromBuffer += (buffStringWithCommand[29] - '0') * 10;
 	TimeFromBuffer += (buffStringWithCommand[30] - '0');
+	SettingHeatingTime(TimeFromBuffer);
 }
 void ReadTemperatureFromBuffer()
 {
@@ -228,10 +228,8 @@ void TemperatureComparison(uint8_t WithTimerOrNot)
 void HeatingWithTimer()
 {
 	ReadExperimentNumber();
-	//ReadPSCandARRFromBuffer();
 	ReadTimeFromBuffer();
 	ReadTemperatureFromBuffer();
-	SettingHeatingTime(TimeFromBuffer);
 	StartSignalForHeating();////////////исправить нужно чтобы таймер включался как только будет нужная температура
 	TemperatureComparison(WithTimer);
 	numberCommand=Temperature_Comparison_WithTimer;
@@ -261,7 +259,6 @@ void HeatingWithoutTimer()
 
 void StopHeating()
 {
-
 	StopSignalForHeating();
 	numberCommand = Stop_Heating;
 	PreparCommandToSentComputer();

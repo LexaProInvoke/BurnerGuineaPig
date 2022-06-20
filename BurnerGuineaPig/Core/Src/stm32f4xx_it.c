@@ -236,19 +236,7 @@ TIM2->CR1 = TIM_CR1_CEN;
 
 
   }
-//  if(TemperatureFromBuffer != SensorTemperature)
-//  {
-//	  if(TemperatureFromBuffer<SensorTemperature)
-//	  {
-//  		TemperatureIsCorrect = TemperatureIsHigher;
-//	  }
-//	  else
-//	  {
-//		TemperatureIsCorrect = TemperatureIsLower;
-//	  }
-//	  AutoFrequencySetting(TemperatureIsCorrect);
-//  }
-  /* USER CODE END TIM2_IRQn 1 */
+
 }
 
 
@@ -279,19 +267,11 @@ else
 
 void USART2_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART2_IRQn 0 */
-	 // получить данное
+
 	if(USART2->SR || 0b1<<7)
 	{
-	stringWithReceivedData[0] = USART2->DR;
-	}
 	getTXString(USART2->DR);
-	//USART2->DR = stringWithReceivedData[0]; // Сделать отправку отдельой командой почитать как вызвать прерывания для отправки по усарт
-  /* USER CODE END USART2_IRQn 0 */
-
-  /* USER CODE BEGIN USART2_IRQn 1 */
-
-  /* USER CODE END USART2_IRQn 1 */
+	}
 }
 
 /* USER CODE BEGIN 1 */

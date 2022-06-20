@@ -8,6 +8,6 @@
 ../Core/Src/ds18b20.c:89:9:ds18b20_init	16	static
 ../Core/Src/ds18b20.c:102:6:ds18b20_MeasureTemperCmd	16	static
 ../Core/Src/ds18b20.c:113:6:ds18b20_ReadStratcpad	32	static
-../Core/Src/ds18b20.c:129:9:ds18b20_GetSign	16	static
-../Core/Src/ds18b20.c:139:7:ds18b20_Convert	24	static
-../Core/Src/ds18b20.c:155:6:TemperatureReading	8	static
+../Core/Src/ds18b20.c:128:9:ds18b20_GetSign	16	static
+../Core/Src/ds18b20.c:138:7:ds18b20_Convert	24	static
+../Core/Src/ds18b20.c:147:6:TemperatureReading	8	static

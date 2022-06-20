@@ -23,14 +23,14 @@ extern volatile uint32_t TimeLowLevelBuff;
 uint8_t SettingFrequencyOutputSignal(uint16_t PSCHighLevel, uint16_t PSCLowLevel, uint16_t ARRHighLevel, uint16_t ARRLowLevel);
 void AutoFrequencySetting(uint8_t TemperatureIsCorrect);
 
-void FrequencyTimerSetting();
+void FrequencyTimer_Init();
 void StartSignalForHeating();
 void StopSignalForHeating();
 
 void SettingHeatingTime(uint32_t NewTime);
 void StartOneSecondTimer();
 void StopOneSecondTimer();
-void OneSecondTimerSetting();
+void OneSecondTimer_Init();
 
-void configGPIO();
+void ConfigGPIO();
 #endif /* INC_HEATINGCONTROL_H_ */

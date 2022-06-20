@@ -9,7 +9,7 @@
  volatile uint8_t ControllerError = 0;
  volatile uint16_t PSCFrequencyTimer = 839;
  volatile uint16_t ARRFrequencyTimer = 9999;
-void OneSecondTimerSetting()
+void OneSecondTimer_Init()
 {
 	RCC -> APB1ENR |= RCC_APB1ENR_TIM3EN;	//разрешить тактирование таймера 2
 	TIM3->SMCR &= ~ TIM_SMCR_SMS;			//внутреннее тактирование таймера
@@ -33,7 +33,7 @@ void StopOneSecondTimer()
 {
 	TIM3 -> CR1 &= ~(TIM_CR1_CEN);
 }
-void FrequencyTimerSetting()
+void FrequencyTimer_Init()
 {
 	RCC -> APB1ENR |= RCC_APB1ENR_TIM2EN;	//разрешить тактирование таймера 2
 	TIM2->SMCR &= ~ TIM_SMCR_SMS;			//внутреннее тактирование таймера
@@ -58,7 +58,7 @@ void StopSignalForHeating()
 	GPIOD->ODR &= ~(0b1<<12);//потушить светодиод
 	IndicationStopHeating();
 	numberCommand = Stop_Heating;
-	//+gpio v 0
+	countdownHeatingTime=0;
 }
 
 void UpTemperature()
@@ -130,7 +130,7 @@ void AutoFrequencySetting(uint8_t TemperatureIsCorrect)
 }
 
 
-void configGPIO()
+void ConfigGPIO()
 {
 	GPIOA->LCKR&= ~(0b1100);
 	GPIOA->MODER &=	~(0b11110000);

@@ -6,42 +6,39 @@
 /* USER CODE BEGIN Includes */
 
 SPI_HandleTypeDef hspi1;
-TIM_HandleTypeDef htim2;
+//TIM_HandleTypeDef htim2;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_TIM2_Init(void);
+//static void MX_TIM2_Init(void);
 static void MX_SPI1_Init(void);
 
 int main(void)
 {
   HAL_Init();
-
   SystemClock_Config();
-
   MX_GPIO_Init();
-  configGPIO();
- // MX_TIM2_Init();
+  ConfigGPIO();
   MX_SPI1_Init();
-  OneSecondTimerSetting();
-  FrequencyTimerSetting();
-
+  OneSecondTimer_Init();
+  FrequencyTimer_Init();
   ST7735_Init();
+  USART_Init();
 
   ST7735_FillScreen(ST7735_BLUE);
 
-  USARTADD();
   //MicrosecondTimer();//настройка микоросекундного таймера для 1-wire интерфейса.
+  ViewInterface();
   while (1)
   {
 	  //
-	  //TemperatureReading();
+	  TemperatureReading();
+	  ViewParam(countdownHeatingTime);
 	  //
 	 // ReadComandFromBuffer();
 	  if(flugOfEndCommand == 1)
 	  {
-		  ViewParam(stringWithReceivedData[0]);
 		  ReadComandFromBuffer();
 		  CommandControl();//вункция выполнения команды
 		  flugOfEndCommand = 0;
@@ -61,14 +58,8 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-  /** Configure the main internal regulator output voltage
-  */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -82,15 +73,12 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
@@ -104,15 +92,6 @@ void SystemClock_Config(void)
   */
 static void MX_SPI1_Init(void)
 {
-
-  /* USER CODE BEGIN SPI1_Init 0 */
-
-  /* USER CODE END SPI1_Init 0 */
-
-  /* USER CODE BEGIN SPI1_Init 1 */
-
-  /* USER CODE END SPI1_Init 1 */
-  /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
@@ -129,10 +108,6 @@ static void MX_SPI1_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN SPI1_Init 2 */
-
-  /* USER CODE END SPI1_Init 2 */
-
 }
 
 /**
@@ -195,16 +170,10 @@ static void MX_SPI1_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-  /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, RS_Pin|A0_Pin|CS_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : RS_Pin A0_Pin CS_Pin */

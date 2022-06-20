@@ -14,7 +14,6 @@
 #define WithTimer				1
 #define WithoutTimer			2
 extern volatile uint16_t 	experimentNumber;
-extern volatile char 		stringWithReceivedData[8];
 extern volatile uint8_t 	flugOfEndCommand;
 extern volatile uint16_t 	TemperatureFromBuffer;
 extern volatile uint8_t 	TemperatureIsCorrect;
@@ -31,7 +30,7 @@ typedef enum
 } states_Control_Device;
 extern states_Control_Device state_Control_Device;
 void SendDataToComputer();
-void USARTADD();
+void USART_Init();
 void ReadComandFromBuffer();
 void getTXString(uint8_t BuffForByte);
 void CommandControl();

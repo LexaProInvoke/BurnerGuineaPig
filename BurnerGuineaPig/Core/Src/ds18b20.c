@@ -21,7 +21,7 @@ __STATIC_INLINE void DelayMicro(__IO uint32_t micros)
 
 	/* Wait till done */
 
-	while (micros--) ;
+	while (micros--);
 //	DelayTime = micros;
 //	StartMicrosecondTimer();
 }
@@ -118,7 +118,6 @@ void ds18b20_ReadStratcpad(uint8_t mode, uint8_t *Data, uint8_t DevNum)
   {
     ds18b20_WriteByte(0xCC);
   }
-  //READ SCRATCHPAD
   ds18b20_WriteByte(0xBE);
   for(i=0;i<8;i++)
   {
@@ -137,19 +136,12 @@ uint8_t ds18b20_GetSign(uint16_t dt)
 
 }
 float ds18b20_Convert(uint16_t dt)
-
 {
-
   float t;
-
   t = (float) ((dt&0x07FF)>>4); //отборосим знаковые и дробные биты
-
   //Прибавим дробную часть
-
   t += (float)(dt&0x000F) / 16.0f;
-
   return t;
-
 }
 
 void TemperatureReading()
